@@ -17,14 +17,45 @@ public class OutServer {
             System.err.println(e.getMessage());
              System.exit(1);
         }
+        // Thread thread1 = new Thread(() -> spam("lol"));
+        // Thread thread2 = new Thread(() -> spam("jsjs"));
+
+        // thread1.start();
+        // thread2.start();
+    }
+
+    public static void spam(String msg) {
+        while(true){
+            System.out.println(msg);
+            try {
+                Thread.sleep(1000);
+            }catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            
+        }
     }
 
     public static void writeToSocket(int port) throws IOException {
-        ServerSocket server = new ServerSocket(port);
+        
+        try (ServerSocket server = new ServerSocket(port)) {
+            while(true){
+                System.out.println("wating for client to connect...");
+                Socket socket = server.accept();
 
-        System.out.println("wating for client to connect...");
-        Socket socket = server.accept();
-        System.out.println("client connecting");
+                Thread clienThread = new Thread(() -> handleClient(socket));
+                clienThread.start();
+                // handleClient(socket);
+
+            }
+  
+      }
+
+    }
+    public static void handleClient(Socket socket) {
+        try{
+         System.out.println("client connecting");
 
         OutputStream outputStream = socket.getOutputStream();
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream,java.nio.charset.StandardCharsets.UTF_8 );
@@ -34,7 +65,21 @@ public class OutServer {
             bufferedWriter.write("hello");
             bufferedWriter.newLine();
             bufferedWriter.flush();
-        }
 
+            try {
+                 Thread.sleep(500);
+            }catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Client Interrupted");
+                return;
+            }
+        }
+           
+        }catch (IOException e){
+            System.out.println("Client disconnected");
+            return;
+        }
+        
+    
     }
 }
